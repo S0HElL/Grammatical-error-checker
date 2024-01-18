@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="Farsi">
+<head>
+    <meta charset="UTF-8">
+    <title>Gramatical Error Correction for Farsi</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <a href="https://shahroodut.ac.ir"> <img src="https://i.postimg.cc/y6bNKP4s/logo.png", style="display: block; width: 5%; margin-left: auto;margin-right: auto; "></a>
+    <h1 class="header">تصحیح‌کننده غلط‌های دستوری برای زبان فارسی</h1>
+    <div class="container">
+        <form method="POST" action="{{ url_for('process') }}" enctype="multipart/form-data">
+            <p>متن نادرست</p>
+            <textarea id="input_text" name="input_text" placeholder="متن خود را اینجا وارد کنید..."></textarea>
+            <br>
+            <label for="file">یا فایل متنی را اینجا بارگذاری کنید</label>
+            <br>
+            <input dir="rtl" type="file" name="file" id="file" accept=".txt">
+            <br>
+            <button type="submit" value="Process" style="display: block; margin-left: auto;margin-right: auto;font-family: Iranian Sans;src:url(/static/irsans.ttf);">پردازش</button>
+            <p> متن تصحیح‌شده </p>
+            <textarea id="result" readonly>{{ result|safe }}</textarea>
+        </form>
+    </div>
+    <div class="contact">
+        <a href="https://t.me/s0hell">2023 Soheil Taghavi</a>
+    </div>
+    <script>
+        // Optionally include JavaScript for additional functionality
+    </script>
+</body>
+</html>
