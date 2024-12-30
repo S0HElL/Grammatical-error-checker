@@ -1,4 +1,4 @@
-from NLP_methods import parser as p
+from hazm_methods import parser as p
 from filehandler import *
 class grammarchecker:
 
