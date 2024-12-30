@@ -10,13 +10,15 @@ from NLP_methods import parser as p
 
 #objects
 file = open_file("sample_text.txt", "r")
-text = file.read()
+text = file.readlines()
 
-#generating the final output
+# generating the final output
 if text:
-   with open("corrected_text.txt","a",encoding="utf-8") as f:  
-       for sentence in p.getsenttokens(text):
-            f.write("S: {"+gc.correction(sentence)+"}\nA: {"+sentence+"}\n")
+    with open("app_log.txt", "a", encoding="utf-8") as f:
+        for line in text:
+            corrected_line = gc.correction(line.strip())
+            f.write("Corrected: {" + corrected_line + "}\nOriginal: {" + line.strip() + "}\n")
+            
             
             
 

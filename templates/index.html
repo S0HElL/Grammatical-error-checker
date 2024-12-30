@@ -11,7 +11,7 @@
     <div class="container">
         <form method="POST" action="{{ url_for('process') }}" enctype="multipart/form-data">
             <p>متن نادرست</p>
-            <textarea id="input_text" name="input_text" placeholder="متن خود را اینجا وارد کنید..."></textarea>
+            <textarea id="input_text" name="input_text" placeholder="متن خود را اینجا وارد کنید..." dir="rtl"></textarea>
             <br>
             <label for="file">یا فایل متنی را اینجا بارگذاری کنید</label>
             <br>
@@ -19,7 +19,7 @@
             <br>
             <button type="submit" value="Process" style="display: block; margin-left: auto;margin-right: auto;font-family: Iranian Sans;src:url(/static/irsans.ttf);">پردازش</button>
             <p> متن تصحیح‌شده </p>
-            <textarea id="result" readonly>{{ result|safe }}</textarea>
+            <textarea id="result" readonly dir="rtl">{{ result|safe }}</textarea>
         </form>
     </div>
     <div class="contact">

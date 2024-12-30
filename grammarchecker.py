@@ -6,7 +6,7 @@ class grammarchecker:
         self.grammarchecker=grammarchecker
 
 
-    def correction(string,):
+    def correction(string):
         #simple rule-based farsi grammar correction
         #objects:
       
@@ -22,7 +22,6 @@ class grammarchecker:
         complement = ''
         adp=''
         nouncomplement = ''
-        verbparts = ''
         nounclause = ''
         adverbs = []  # List to store adverbs
         subjectflag = 0
@@ -32,8 +31,10 @@ class grammarchecker:
         complementflag = 0
         object_flag = 0
         nounclauseflag = 0
+        verbpartflag = 0
         identifier =['م','ی','ه','یم','ید','ند']
         PRO=['من','تو','او','ما','شما','آنها']
+        LinkingVerbFlag = 0
 
         for i in range(len(tags)):
             tag = tags[i]
@@ -46,7 +47,7 @@ class grammarchecker:
                     if tag[0] == "را":
                         continue
                     
-                    elif next_tag and next_tag[1] in ['PRON', 'NOUN', 'NOUN,EZ']:
+                    elif next_tag and next_tag[1] in ['PRON', 'NOUN', 'NOUN,EZ','DET', 'ADJ' , 'ADJ,EZ']:
                         complement = next_tag[0]
                         complementflag = 1
                         adp=tag[0]
@@ -67,16 +68,27 @@ class grammarchecker:
 
                     elif not subjectflag:
                         subject = tag[0]
-                        subjectflag += 1    
+                        subjectflag += 1
+                        if subject.endswith("ها") or subject.endswith("های")  or (subject.endswith("ان") and p.stemmer(subject) != subject ):
+                            subjectisplural = 1 
+                        
 
                     # elif prev_tag and complementflag and prev_tag == complement:
                     #     complement = f"{adp} {complement} {tag[0]}"
     
                     # elif prev_tag and subjectflag and prev_tag[0] == subject:
                     #     subject = f"{subject} {tag[0]}"  
-                    
 
-                case 'CCONJ':
+                case 'DET':#حرف اشاره
+                    tempflag = 1 if complement == tag[0] else 0
+                    if next_tag and next_tag[1] in ['PRON', 'NOUN', 'NOUN,EZ','ADJ','ADJ,EZ']:
+                        temp=list(tag)
+                        temp[0]=f"{tag[0]} {next_tag[0]}"       
+                        tag=tuple(temp)  
+                        if tempflag:
+                            complement = tag[0] 
+
+                case 'CCONJ':#حرف ربط
 
                     if next_tag and next_tag[1] in ['PRON', 'NOUN', 'NOUN,EZ']:
                         if subjectflag and prev_tag[0] == subject :
@@ -107,8 +119,9 @@ class grammarchecker:
                     else:
                         nouncomplement = tag[0]
                         nouncomplementflag = 1
+
                     if tag[1] in ['CCONJ'] and next_tag and next_tag[1] == 'ADJ':
-                        nouncomplement += tag[0] + next_tag[0]
+                        nouncomplement = f" {nouncomplement} {tag[0]} {next_tag[0]}"
     
                 case 'VERB':
 
@@ -116,13 +129,29 @@ class grammarchecker:
                         verb = tag[0]
                         verbflag += 1
 
-                    if prev_tag and verbflag and (prev_tag[1] in ['NOUN', 'NOUN,EZ']) and (prev_tag[0] not in subject or complement):
-                        verb= f"{prev_tag[0]}_{verb}"   
+                        #find out if verb is of Linking type (اسنادی) 
+                        with open("LinkingVerbs.txt", "r", encoding="utf-8") as f:
+                            for line in f:
+                                if verb in line:
+                                    LinkingVerbFlag = 1
+                                    break
 
                     if next_tag and next_tag[1] == 'VERB':
                         verb = f"{verb}_{next_tag[0]}"
+                        verbpartflag = 1
+                    
+                    if prev_tag and verbflag and (prev_tag[1] in ['NOUN', 'NOUN,EZ']) and (prev_tag[0] not in complement) and (prev_tag[0] not in object_):
+                        if LinkingVerbFlag:
+                            nouncomplement = prev_tag[0]
+                            nouncomplementflag = 1
+                        else:
+                            verb = f"{prev_tag[0]}_{verb}"
+                            verbpartflag = 1
+
+
 
                 case 'SCONJ': #Join که to the previous tag
+
                     if prev_tag:
 
                         if prev_tag[0] in subject:
@@ -132,13 +161,15 @@ class grammarchecker:
                             complement = f"{complement} {tag[0]}"
         
         #strip the verb of its identifier
-        for item in identifier: 
-            if verb.endswith(item):
-                verb = verb.replace(item,'')                 
+        if verbpartflag:
+            for item in identifier: 
+                if verb.endswith(item):
+                    verb = verb.replace(item,'')   
 
+        
         #find the type of adverbs     
         startingadverbflag = 0 
-        verbadverbflag = 1
+        verbadverbflag = 0
         startingadverb = ''
         verbadverb = ''
         
@@ -148,21 +179,13 @@ class grammarchecker:
                 
                 if found_in_text_file:
                     startingadverbflag = 1
-                    verbadverbflag = 0
                     startingadverb = adverb
                 else:
                     verbadverb = adverb
+                    verbadverbflag = 1
+
 
                 f.seek(0)  # Reset file pointer to the beginning for the next adverb
-        
-        #find out if verb is of Linking type (اسنادی) 
-        LinkingVerbs=['است']
-        LinkingVerbs+=p.conjugation('هست','perfective_present')+p.conjugation('بود','perfective_past')+p.conjugation('شد','perfective_past')+p.conjugation('گشت','perfective_past')+p.conjugation('گردید','perfective_past')
-        LinkingVerbFlag=0 
-        if verb in LinkingVerbs:
-            LinkingVerbFlag=1
-
-
         
         # Find the stem 
         stem = p.lemmatizer(verb)
@@ -180,12 +203,15 @@ class grammarchecker:
            #فعل التزامی هست
         future=True if verb.startswith("خواه") else False
             #فعل آینده است
-        passive=True if 'شد' in verb and not LinkingVerbFlag else False
+        passive=True if 'شد' in verb and not LinkingVerbFlag and not future else False
             #فعل مجهول است
         precedent=True if 'بود' in verb and not LinkingVerbFlag else False
             #فعل گذشته دور است 
-        progressive=True if ('داشت' or 'دار') in verb and verbparts else False
+        progressive=True if ('داشت' or 'دار') in verb and verbpartflag else False
         
+        if future:
+            present = 0 
+
         # صرف افعال بر اساس فلگ‌هایی که تعیین کردیم 
         verblist = None
         tense = ''
@@ -216,6 +242,12 @@ class grammarchecker:
 
             case (0,False,True,False,False,False,True,False):
                 tense = 'negative_past_precedent'
+            
+            case (_,False,False,False,False,True,False,False):
+                tense = 'perfective_future'
+
+            case (_,False,True,False,False,True,False,False):
+                tense = 'negative_perfective_future'
 
             case (1,True, True,False,False,False,False,False):
                 tense = 'negative_imperfective_present'
@@ -232,9 +264,6 @@ class grammarchecker:
             case (1,False,True,False,True,False,False,False):
                 tense = 'negative_passive_perfective_present'
 
-            case (1,False,False,False,False,True,False,False):
-                tense = 'perfective_future'
-
             case (1,False,True,False,False,False,False,False):
                 tense = 'negative_pefective_present'
 
@@ -242,7 +271,8 @@ class grammarchecker:
                 tense = 'perfective_present'
 
             case (1,False,False,False,False,False,False,True):
-                tense = 'progressive_present'    
+                tense = 'progressive_present'   
+
 
         # Set verblist once based on the determined tense
         verblist = p.conjugation(stem, tense)
@@ -252,23 +282,26 @@ class grammarchecker:
         #find and correct the grammatical errors based on the set of rules
         #check whether the verb is incorrect
         newverb=''
-        for i in range(5):
-            if verb != newverb:
-                if PRO[i] in subject :
-                    newverb = verblist[i]
-                    break  # Exit the loop once a match is found
-                elif subjectisplural and PRO[i] in subject and i+3 <=5: #مثلا من و رضا بستنی خوردیم. خوردم که به علاوه 3 می‌شود خوردیم 
-                    newverb = verblist[i+3]
-                    break
-                elif subject not in PRO and ('ها' in subject or 'ان' in subject): #subject is in plural form
-                    newverb = verblist[5]
-                    break  # Exit the loop once a match is found
-                elif subject not in PRO: #subject is in singular form
-                    newverb = verblist[2]
-                    break  # Exit the loop once a match is found
+        for i in range(5):               
 
+            if  subjectisplural and PRO[i] in subject and i+3 <= 5: #مثلا من و رضا بستنی خوردیم. خوردم که به علاوه 3 می‌شود خوردیم 
+                newverb = verblist[i+3]
+                break
 
+            elif subject not in PRO and subjectisplural: 
+                newverb = verblist[5] 
+                break  # Exit the loop once a match is found
             
+            elif PRO[i] in subject :
+                newverb = verblist[i]
+                break  # Exit the loop once a match is found
+  
+            elif subject not in PRO and i == 5: #subject is in singular form
+                newverb = verblist[2]
+                break  
+
+
+
         newverb = newverb.replace("_","‌")
         p.remove_repeated_substring(newverb)
 
@@ -279,7 +312,7 @@ class grammarchecker:
         match (nounclauseflag,startingadverbflag,subjectflag,object_flag,complementflag,verbadverbflag,nouncomplementflag,verbflag):
             case (0, 0, 1, 0, 0, 0, 0, 1):
                 new_sentence = f"{subject} {newverb}."
-            case (0, 0, 1, 0, 0, 0, 1, 1):
+            case (0, 0, 1, 0, 0, 0, 1, 1): 
                 new_sentence = f"{subject} {nouncomplement} {newverb}."
             case (0, 0, 1, 0, 0, 1, 0, 1):
                 new_sentence = f"{subject} {verbadverb} {newverb}."
@@ -377,4 +410,4 @@ class grammarchecker:
             case (_):
                 new_sentence = string #fail
             
-        return new_sentence
+        return new_sentence.replace("  "," ")

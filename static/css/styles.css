@@ -9,7 +9,6 @@ body {
 }
 
 .container {
-    display: flexbox;
     position: center;
     margin-left: auto;
     margin-right: auto;
@@ -34,11 +33,10 @@ textarea {
     display: flex;
     margin-left: auto;
     margin-right: auto;
-    text-align: center;
+    text-align: center; /* Adjust text alignment */
     background: rgb(240, 248, 255);
-    font-family: Iranian Sans;
+    font-family: 'Iranian Sans', sans-serif; /* Include fallback font */
     font-variant: normal;
-    src:url(/static/irsans.ttf);
     width: 100%;
     height: 20vh;
     resize: none;
