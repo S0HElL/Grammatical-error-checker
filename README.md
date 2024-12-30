@@ -1,5 +1,5 @@
-# Grammatical-error-checker
-This project uses the Python 3.8+ Hazm nlp toolkit to process given tokens and and a set of rules based on Farsi grammar provided by me to correct possible Farsi grammatical errors in simple and short sentences.   
+# Grammatical-error-checker (for Persian)
+This project uses the Python 3.8+ Hazm NLP toolkit to process given tokens and a set of rules based on Farsi grammar provided by me to correct possible Farsi grammatical errors in simple and short sentences.   
 Simple Mistakes such as wrong sentence parts order or unmatching subject and verb identifiers. As long as it falls in the cases provied in ruleset it will correct the mistakes and record the original and the correct version in the log.txt. Beware however it might misunderstand and try to correct already correct sentences as a handful of Persian verbs have similar forms while having diferent verb identifiers.   
 I originally planned to use this project to generate cases to provide learning material for a language model.   
 
