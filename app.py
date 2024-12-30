@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from filehandler import open_file, close_file
 from grammarchecker import grammarchecker as gc
-from NLP_methods import parser as p
+from hazm_methods import parser as p
 
 app = Flask(__name__)
 
