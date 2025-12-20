@@ -8,7 +8,9 @@ The method is outdated in the current state of things, better use a finetuned BE
 </p>
 <p>
 The webapp was written using the Flask framework.      
-You will need the Hazm library and Flask module to run the code. Open a terminal and Use ``pip install -r requirements.txt`` to install them on your machine and you're good to go.     
+You will need the Hazm library and Flask module to run the code. Open a terminal and Use ``pip install -r requirements.txt`` to install them on your machine and you're good to go.    
+note: currently it only works with python version 3.11 .
+because of spaCy having problems with 3.12+.
 </p>
 Credits to roshan research for the toolkit. https://github.com/roshan-research/hazm  
 
