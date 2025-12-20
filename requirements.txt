@@ -1,4 +1,4 @@
-hazm==0.11.0
+hazm==0.10.0
 flashtext
 gensim
 python-crfsuite
@@ -13,3 +13,4 @@ regex
 tqdm
 threadpoolctl
 colorama
+flask

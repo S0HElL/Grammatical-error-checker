@@ -1,29 +1,57 @@
-from filehandler import open_file, close_file
-from grammarchecker import grammarchecker as gc
-from NLP_methods import parser as p
+from grammarchecker import PersianGrammarChecker
+from hazm_methods import parser as p, SentenceTokenizer
+from hazm import Normalizer
 
-
-#تصحیح‌کننده غلط ‌های دستوری مبتنی بر قانون برای زبان فارسی
-#با استفاده از کتابخانه حظم 
-#سهیل تقوی - دانشگاه صنعتی شاهرود 
-#پاییز 1402
 
 #objects
-file = open_file("sample_text.txt", "r")
+try:
+    file = open("sample_text.txt", "r", encoding="utf-8")
+    print("File 'sample_text.txt' opened successfully.")
+except Exception as e:
+    print(f"Error opening file 'sample_text.txt': {e}")
+    file = None
+
+# Initialize normalizer, grammar checker and sentence tokenizer
+normalizer = Normalizer()
+gc = PersianGrammarChecker()
+sentence_tokenizer = SentenceTokenizer()
+
+if file is None:
+    print("Error: Could not open file")
+    exit(1)
+
 text = file.readlines()
 
 # generating the final output
 if text:
-    with open("app_log.txt", "a", encoding="utf-8") as f:
+    with open("log.json", "a", encoding="utf-8") as f:
         for line in text:
-            corrected_line = gc.correction(line.strip())
-            f.write("Corrected: {" + corrected_line + "}\nOriginal: {" + line.strip() + "}\n")
+            # Normalize the line first
+            normalized_line = normalizer.normalize(line.strip())
+            
+            # Tokenize the normalized line into sentences
+            sentences = sentence_tokenizer.tokenize(normalized_line)
+              
+            # Process each sentence individually
+            for sentence in sentences:
+                if sentence.strip():  # Skip empty sentences
+                    corrected_line = gc.correct(sentence.strip())
+                    import json
+                    output = {
+                        "corrected": corrected_line,
+                        "original": sentence.strip()
+                    }
+                    f.write(json.dumps(output, ensure_ascii=False) + "\n")
             
             
             
 
-#بستن فایل           
-close_file(file)
+#بستن فایل
+try:
+    file.close()
+    print("File closed successfully.")
+except Exception as e:
+    print(f"Error closing file: {e}")
 
 
 

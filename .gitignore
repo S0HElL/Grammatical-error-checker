@@ -1,0 +1,6 @@
+.venv/
+app_log(legacy).txt
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

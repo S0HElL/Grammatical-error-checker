@@ -1,5 +1,4 @@
 from hazm_methods import parser as p
-from filehandler import *
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 from enum import Enum
@@ -453,7 +452,17 @@ class PersianGrammarChecker:
         return corrected_sentence.replace("  ", " ")
 
 
+# Singleton instance of PersianGrammarChecker
+_grammar_checker_instance = None
+
+def get_grammar_checker():
+    """Get singleton instance of PersianGrammarChecker"""
+    global _grammar_checker_instance
+    if _grammar_checker_instance is None:
+        _grammar_checker_instance = PersianGrammarChecker()
+    return _grammar_checker_instance
+
 def correction(text: str) -> str:
     """Legacy function for backward compatibility"""
-    checker = PersianGrammarChecker()
+    checker = get_grammar_checker()
     return checker.correct(text)

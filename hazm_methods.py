@@ -2,6 +2,16 @@ from __future__ import unicode_literals
 from hazm import *
 import difflib
 
+class SentenceTokenizer:
+    """Sentence tokenizer for Persian text"""
+    
+    def __init__(self):
+        pass
+    
+    def tokenize(self, text: str) -> list:
+        """Tokenize text into sentences"""
+        return sent_tokenize(text)
+
 class parser:
 
     #کانستراکتور
@@ -56,13 +66,6 @@ class parser:
     def tagger(token):
         tagger = POSTagger(model='resources/pos_tagger.model')
         return tagger.tag(token)
-    
-    #یافتن مفعول و متمم در جمله بر اساس کلمات بعدی
-    @staticmethod
-    def datamaker(token):
-          tagger = POSTagger(model='resources/pos_tagger.model')
-          return tagger.data_maker(token)
-        
 
 
     #یافتن بن فعل
