@@ -4,7 +4,7 @@
 Simple Mistakes such as wrong sentence parts order or unmatching subject and verb identifiers. As long as it falls in the cases provied in ruleset it will correct the mistakes and record the original and the correct version in the log.txt. Beware however it might misunderstand and try to correct already correct sentences as a handful of Persian verbs have similar forms while having diferent verb identifiers.   
 </p>
 <p>
-The logic is incredibly outdated though, better use a BERT model for this task.
+The method is outdated in the current state of things, better use a finetuned BERT model or LLM api for this particular task.
 </p>
 <p>
 The webapp was written using the Flask framework.      
