@@ -1,0 +1,18 @@
+Persian Grammar Checker Test Results
+==================================================
+Input sentence:  مهدی و مریم 📖خواند
+Normalized sentence: مهدی و مریم 📖خواند
+Tokens: ['مهدی', 'و', 'مریم', '📖خواند']
+POS tags: [('مهدی', 'NOUN'), ('و', 'CCONJ'), ('مریم', 'NOUN'), ('📖خواند', 'VERB')]
+Parsed components: SentenceComponents(subject='مهدی و مریم', verb='مریم_📖خواند', object='', complement='', adposition='', noun_complement='', noun_clause='', adverbs=[], starting_adverb='', verb_adverb='', untagged_words=[])
+Parsed flags: SentenceFlags(subject_found=True, subject_is_plural=True, verb_found=True, noun_complement_found=False, complement_found=False, object_found=False, noun_clause_found=False, verb_part_found=True, linking_verb=False, starting_adverb_found=False, verb_adverb_found=False)
+
+Verb analysis for 'مریم_📖خواند':
+Verb stem: مریم_📖خواند
+Is present tense: False
+Verb properties: VerbProperties(is_present=False, is_negative=False, is_imperfective=False, is_subjunctive=False, is_future=False, is_passive=False, is_precedent=False, is_progressive=False)
+Verb tense: perfective_past
+Verb conjugation: ['مریم_📖خواندم', 'مریم_📖خواندی', 'مریم_📖خواند', 'مریم_📖خواندیم', 'مریم_📖خواندید', 'مریم_📖خواندند']
+Selected corrected verb: مریم_📖خواندند
+
+Final corrected sentence: مهدی و مریم مریم‌📖خواندند.

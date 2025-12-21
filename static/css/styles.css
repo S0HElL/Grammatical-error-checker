@@ -1,55 +1,219 @@
-body {
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+@font-face {
+    font-family: 'Vazirmatn-Regular';
+    src: url('../fonts/Vazirmatn-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    background: rgb(2,0,36);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px 0;
     background: linear-gradient(90deg, rgb(135, 206, 235) 0%, rgb(224, 255, 255) 35%, rgb(245, 255, 250) 100%);
+    font-family: Vazirmatn-Regular, sans-serif;
+}
+
+.page-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.logo-link {
+    display: block;
+    width: 80px;
+    margin: 0 auto 20px;
+}
+
+.logo-link img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.header {
+    color: indigo;
+    font-family: Vazirmatn-Regular, sans-serif;
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
 }
 
 .container {
-    position: center;
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: space-between;
-    width: 50%;
+    max-width: 800px;
+    margin: 0 auto;
     color: indigo;
-    align-items: center;
-    text-align: center;
-    font-family: Iranian Sans;
-    font-variant: normal;
-    src:url(/static/irsans.ttf);
 }
-.header{
-    color: indigo;
-    font-family: Iranian Sans;
-    font-variant: normal;
-    src:url(/static/irsans.ttf);
-    text-align:center;
 
+.input-section,
+.output-section {
+    margin-bottom: 25px;
 }
+
+.section-label {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
 textarea {
-    display: flex;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center; /* Adjust text alignment */
-    background: rgb(240, 248, 255);
-    font-family: 'Iranian Sans', sans-serif; /* Include fallback font */
-    font-variant: normal;
+    display: block;
     width: 100%;
-    height: 20vh;
-    resize: none;
+    height: 180px;
+    padding: 15px;
+    margin: 0 auto;
+    text-align: right;
+    background: rgb(240, 248, 255);
+    font-family: Vazirmatn-Regular, sans-serif;
+    font-size: 1rem;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    resize: vertical;
+    transition: border-color 0.3s ease;
 }
 
-.contact{
-    display: block;
-    color: indigo;
-    font-family: sans-serif;
-    font-variant: normal;
-    text-align: center;
-    margin-left: auto;
-    margin-bottom: auto;
-    margin-right: auto;
+textarea:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.6);
+}
 
+.file-section {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.file-label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+/* Custom file input styling */
+input[type="file"]#file {
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: Vazirmatn-Regular, sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+input[type="file"]#file::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    vertical-align: middle;
+    background: url('https://pic.onlinewebfonts.com/thumbnails/animations_68490.svg') center/contain no-repeat;
+}
+
+input[type="file"]#file:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+input[type="file"]#file:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+input[type="file"]#file::-webkit-file-upload-button {
+    display: none;
+}
+
+input[type="file"]#file::-moz-file-upload-button {
+    display: none;
+}
+
+/* Process button styling */
+.process-button {
+    display: block;
+    margin: 0 auto 25px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: Vazirmatn-Regular, sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 120px;
+}
+
+.process-button:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.process-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Contact section */
+.contact {
+    text-align: center;
+    margin-top: 40px;
+    color: indigo;
+}
+
+.contact-name {
+    font-family: Gabriola, cursive;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-links a {
+    display: inline-block;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.social-links a:hover {
+    opacity: 0.7;
+    transform: scale(1.1);
+}
+
+.social-links img {
+    width: 28px;
+    height: 28px;
+    display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header {
+        font-size: 1.4rem;
+    }
+    
+    .container {
+        padding: 0 10px;
+    }
+    
+    textarea {
+        height: 150px;
+    }
 }

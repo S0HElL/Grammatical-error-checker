@@ -30,8 +30,8 @@ Grammatical-error-checker/
 ├── requirements.txt        # Python dependencies
 ├── sample_text.txt         # Sample input text
 ├── log.json                # Output log file
-├── adverbs.txt             # List of Persian adverbs
-├── LinkingVerbs.txt        # List of Persian linking verbs
+├── //resources//adverbs.txt             # List of Persian adverbs
+├── //resources//LinkingVerbs.txt        # List of Persian linking verbs
 ├── static/                 # Static files (CSS, fonts)
 ├── templates/              # HTML templates
 └── resources/              # NLP model files

@@ -1,32 +1,51 @@
 <!DOCTYPE html>
-<html lang="Farsi">
+<html lang="fa">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gramatical Error Correction for Farsi</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <a href="https://shahroodut.ac.ir"> <img src="https://i.postimg.cc/y6bNKP4s/logo.png", style="display: block; width: 5%; margin-left: auto;margin-right: auto; "></a>
-    <h1 class="header">تصحیح‌کننده غلط‌های دستوری برای زبان فارسی</h1>
-    <div class="container">
-        <form method="POST" action="{{ url_for('process') }}" enctype="multipart/form-data">
-            <p>متن نادرست</p>
-            <textarea id="input_text" name="input_text" placeholder="متن خود را اینجا وارد کنید..." dir="rtl"></textarea>
-            <br>
-            <label for="file">یا فایل متنی را اینجا بارگذاری کنید</label>
-            <br>
-            <input dir="rtl" type="file" name="file" id="file" accept=".txt">
-            <br>
-            <button type="submit" value="Process" style="display: block; margin-left: auto;margin-right: auto;font-family: Iranian Sans;src:url(/static/irsans.ttf);">پردازش</button>
-            <p> متن تصحیح‌شده </p>
-            <textarea id="result" readonly dir="rtl">{{ result|safe }}</textarea>
-        </form>
+    <div class="page-wrapper">
+        <a href="https://shahroodut.ac.ir" class="logo-link">
+            <img src="https://i.postimg.cc/y6bNKP4s/logo.png" alt="Logo">
+        </a>
+        
+        <h1 class="header">تصحیح‌کننده غلط‌های دستوری برای زبان فارسی</h1>
+        
+        <div class="container">
+            <form method="POST" action="{{ url_for('process') }}" enctype="multipart/form-data">
+                <div class="input-section">
+                    <p class="section-label">متن نادرست</p>
+                    <textarea id="input_text" name="input_text" placeholder="متن خود را اینجا وارد کنید..." dir="rtl">{{ input_text|safe }}</textarea>
+                </div>
+                
+                <div class="file-section">
+                    <label for="file" class="file-label">یا فایل متنی را اینجا بارگذاری کنید</label>
+                    <input type="file" name="file" id="file" accept=".txt">
+                </div>
+                
+                <button type="submit" class="process-button">پردازش</button>
+                
+                <div class="output-section">
+                    <p class="section-label">متن تصحیح‌شده</p>
+                    <textarea id="result" readonly dir="rtl">{{ result|safe }}</textarea>
+                </div>
+            </form>
+        </div>
+        
+        <div class="contact">
+            <p class="contact-name">Soheil Taghavi 2023-2025</p>
+            <div class="social-links">
+                <a href="https://t.me/s0hell" title="Telegram">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+                </a>
+                <a href="https://github.com/S0HElL" title="GitHub">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub">
+                </a>
+            </div>
+        </div>
     </div>
-    <div class="contact">
-        <a href="https://t.me/s0hell"><img src="https://avatars.githubusercontent.com/u/131805406?v=4", style="display: block; width: 2%; margin-left: auto;margin-right: auto; ">2023 S0hell</a>
-    </div>
-    <script>
-        // Optionally include JavaScript for additional functionality
-    </script>
 </body>
 </html>

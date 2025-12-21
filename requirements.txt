@@ -14,3 +14,4 @@ tqdm
 threadpoolctl
 colorama
 flask
+python==3.11
