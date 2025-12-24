@@ -40,11 +40,11 @@ class SentenceComponents:
     starting_adverb: str = ''
     verb_adverb: str = ''
     untagged_words: List[str] = field(default_factory=list)
+    final_punctuation: str = '' 
     
     def __post_init__(self):
         pass
-
-
+    
 @dataclass
 class SentenceFlags:
     """Boolean flags for sentence structure"""
@@ -145,18 +145,24 @@ class PersianGrammarChecker:
         return False
     
     def _is_linking_verb(self, verb: str) -> bool:
-        return any(verb in linking_verb for linking_verb in self.linking_verbs)
+        # Check if the verb itself is in linking verbs
+        if any(verb in linking_verb for linking_verb in self.linking_verbs):
+            return True
+        
+        # Check if the lemmatized form is in linking verbs
+        lemmatized = p.lemmatizer(verb).split('#')[0]
+        return any(lemmatized in linking_verb for linking_verb in self.linking_verbs)
     
     def _classify_adverbs(self, adverbs: List[str]) -> Tuple[str, str]:
         starting_adverb = ''
         verb_adverb = ''
-        
+
         for adverb in adverbs:
             if adverb in self.adverbs:
                 starting_adverb = adverb
             else:
                 verb_adverb = adverb
-        
+
         return starting_adverb, verb_adverb
     
     def _extract_verb_stem(self, verb: str) -> Tuple[str, bool]:
@@ -169,66 +175,95 @@ class PersianGrammarChecker:
                 return part, is_present
         
         return parts[0] if parts else verb, False
-    
     def _analyze_verb_properties(self, verb: str, is_present: bool, 
-                                 is_linking: bool, is_verb_part: bool) -> VerbProperties:
-        is_negative = verb.startswith("ن")
-        is_imperfective = verb.startswith("نمی") or verb.startswith("می")
-        is_subjunctive = verb.startswith("ب") and is_present
-        is_future = verb.startswith("خواه")
-        is_passive = 'شد' in verb and not is_linking and not is_future
-        is_precedent = 'بود' in verb and not is_linking
-        is_progressive = ('داشت' in verb or 'دار' in verb) and is_verb_part
-        
-        if is_future:
-            is_present = False
-        
-        return VerbProperties(
-            is_present=is_present,
-            is_negative=is_negative,
-            is_imperfective=is_imperfective,
-            is_subjunctive=is_subjunctive,
-            is_future=is_future,
-            is_passive=is_passive,
-            is_precedent=is_precedent,
-            is_progressive=is_progressive
-        )
-    
+                                    is_linking: bool, is_verb_part: bool) -> VerbProperties:
+            # Get the root lemma to distinguish main verbs from auxiliaries
+            # e.g., 'budi' -> lemma 'bud'. 'rafte bud' -> lemma 'raft#row'
+            lemma_full = p.lemmatizer(verb)
+            lemma_past = lemma_full.split('#')[0]
+            
+            is_negative = verb.startswith("ن")
+            is_imperfective = verb.startswith("نمی") or verb.startswith("می")
+            is_subjunctive = verb.startswith("ب") and is_present
+            is_future = verb.startswith("خواه")
+            is_progressive = ('داشت' in verb or 'دار' in verb) and is_verb_part
+
+
+            if 'بود' in verb and not self._is_linking_verb(verb):
+                if lemma_past == 'بود': 
+                    # If root is 'bud', it's only precedent if it looks like "bude..."
+                    is_precedent = 'ه' in verb 
+                else:
+                    is_precedent = True
+            else:
+                is_precedent = False
+
+            # Hazm treats these as compound active verbs. Applying Passive tense would double-passive them.
+            if 'شد' in verb and not self._is_linking_verb(verb) and not is_future:
+                if 'شد' in lemma_past:
+                    # If the stem includes 'shod' (e.g. doktor_shod), treat as Active Compound.
+                    is_passive = False
+                else:
+                    # Only true if 'shod' is on surface but not in stem (rare, but implies transformation)
+                    is_passive = True
+            else:
+                is_passive = False
+                
+            if is_future:
+                is_present = False
+            
+            return VerbProperties(
+                is_present=is_present,
+                is_negative=is_negative,
+                is_imperfective=is_imperfective,
+                is_subjunctive=is_subjunctive,
+                is_future=is_future,
+                is_passive=is_passive,
+                is_precedent=is_precedent,
+                is_progressive=is_progressive
+            )
     def _strip_person_identifier(self, verb: str) -> str:
         """Remove person identifier suffix from verb safely"""
-        # 1. Check if the verb is ALREADY a valid Lemma (Past stem). 
-        #    If so, 'دید' is the stem, don't strip 'ید'.
         lemma = p.lemmatizer(verb).split('#')[0]
-        if verb == lemma:
+        
+        if verb == lemma and '\u200c' not in verb:
             return verb
 
-        # 2. Iterate and strip from the END only using slicing
         for identifier in self.PERSON_IDENTIFIERS:
             if verb.endswith(identifier):
-                # Slice off the end
                 stripped = verb[:-len(identifier)]
-                # Heuristic: If stripping leaves a single letter or empty string,
-                # it's likely part of the root, not a suffix (unless it's very short like 'گف')
-                # However, with the lemma check above, this is safer.
-                if len(stripped) >= 1:
+                # Ensure we don't strip the whole word (simple sanity check)
+                if len(stripped) > 1:
                     return stripped
         return verb
-    
+ 
     def _select_correct_verb_form(self, subject: str, subject_is_plural: bool, 
                                    verb_list) -> str:
         if not isinstance(verb_list, list):
             return subject
         
+        # Helper to check for precise pronoun match (avoids substring errors)
+        def has_pronoun(pronoun_to_check, text):
+            # Check exact match or word boundaries
+            return (pronoun_to_check == text or 
+                    f" {pronoun_to_check} " in f" {text} " or 
+                    text.startswith(f"{pronoun_to_check} ") or 
+                    text.endswith(f" {pronoun_to_check}"))
+
+        # Explicitly check 'shoma' first or ensure precise matching
         for i, pronoun in enumerate(self.PRONOUNS):
-            if subject_is_plural and pronoun in subject and i + 3 <= 5:
-                return verb_list[i + 3]
-            elif pronoun in subject:
-                return verb_list[i]
+            if has_pronoun(pronoun, subject):
+                # Logic for shifting to plural form
+                if subject_is_plural and i + 3 <= 5:
+                    return verb_list[i + 3]
+                else:
+                    return verb_list[i]
         
+        # Fallbacks
         if subject_is_plural:
             return verb_list[5] if len(verb_list) > 5 else verb_list[0]
         else:
-            return verb_list[2] if len(verb_list) > 2 else verb_list[0]
+            return verb_list[2] if len(verb_list) > 2 else verb_list[0] 
     
     def _parse_sentence_components(self, tags: List[Tuple[str, str]]) -> Tuple[SentenceComponents, SentenceFlags]:
         components = SentenceComponents()
@@ -242,35 +277,39 @@ class PersianGrammarChecker:
             word, pos = tag
             next_tag = tags[i + 1] if i + 1 < len(tags) else None
             prev_tag = tags[i - 1] if i - 1 >= 0 else None
-             
-            if pos in ['ADP', 'ADP,EZ']:
+            
+            # Check for PUNCT (Universal) or PUNC (Legacy)
+            if pos in ['PUNCT', 'PUNC']:
+                # Check for Persian (؟، ؛) and English punctuation
+                if word in ['?', '!', '.', ';', '؟', '؛']:
+                    components.final_punctuation = word
+                
+                # Remove punctuation from the generic word pool so it doesn't float
+                if word in components.untagged_words:
+                    components.untagged_words.remove(word)
+
+            elif pos in ['ADP', 'ADP,EZ']:
                 self._handle_adposition(word, next_tag, components, flags)
             
             elif pos in ['PRON', 'NOUN', 'NOUN,EZ']:
                 self._handle_noun_or_pronoun(word, next_tag, components, flags)
-            
             elif pos == 'DET':
                 self._handle_determiner(word, next_tag, components, flags)
-            
             elif pos == 'CCONJ':
                 self._handle_conjunction(word, next_tag, prev_tag, components, flags)
-            
             elif pos == 'ADV':
                 components.adverbs.append(word)
                 if word in components.untagged_words:
                     components.untagged_words.remove(word)
-            
             elif pos in ['ADJ', 'ADJ,EZ']:
                 self._handle_adjective(word, prev_tag, components, flags)
-            
             elif pos == 'VERB':
                 self._handle_verb(word, next_tag, prev_tag, components, flags)
-            
             elif pos == 'SCONJ':
                 self._handle_subordinating_conjunction(word, prev_tag, components)
         
         return components, flags
-    
+  
     def _handle_adposition(self, word: str, next_tag: Optional[Tuple[str, str]],
                           components: SentenceComponents, flags: SentenceFlags):
         if word == "را":
@@ -284,7 +323,6 @@ class PersianGrammarChecker:
                 components.untagged_words.remove(word)
             if next_tag[0] in components.untagged_words:
                 components.untagged_words.remove(next_tag[0])
-    
     def _handle_noun_or_pronoun(self, word: str, next_tag: Optional[Tuple[str, str]],
                                 components: SentenceComponents, flags: SentenceFlags):
         if flags.complement_found and word == components.complement:
@@ -297,17 +335,15 @@ class PersianGrammarChecker:
                 components.untagged_words.remove(word)
          
         elif next_tag and next_tag[0] == 'را':
-            if components.untagged_words:
-                # Assuming untagged words before 'ra' belong to the object phrase
-                # excluding the word itself from list comprehension just in case
-                relevant_words = [w for w in components.untagged_words if w != word]
-                components.object = f"{word} {' '.join(relevant_words)}".strip()
-                components.untagged_words = []
-            else:
-                components.object = word
+            components.object = word
             flags.object_found = True
+            
+            # Remove the object word itself
             if word in components.untagged_words:
                 components.untagged_words.remove(word)
+                
+            if next_tag[0] in components.untagged_words:
+                components.untagged_words.remove(next_tag[0])
          
         elif not flags.subject_found:
             components.subject = word
@@ -315,7 +351,6 @@ class PersianGrammarChecker:
             flags.subject_is_plural = self._is_plural_noun(word)
             if word in components.untagged_words:
                 components.untagged_words.remove(word)
-    
     def _handle_determiner(self, word: str, next_tag: Optional[Tuple[str, str]],
                           components: SentenceComponents, flags: SentenceFlags):
         if next_tag and next_tag[1] in ['PRON', 'NOUN', 'NOUN,EZ', 'ADJ', 'ADJ,EZ']:
@@ -386,7 +421,6 @@ class PersianGrammarChecker:
                 if next_tag[0] in components.untagged_words:
                     components.untagged_words.remove(next_tag[0])
 
-            # Fix: Added check for components.subject to prevent stealing subject parts for compound verbs
             if (prev_tag and flags.verb_found and prev_tag[1] in ['NOUN', 'NOUN,EZ']
                 and prev_tag[0] not in components.complement
                 and prev_tag[0] not in components.object
@@ -434,43 +468,51 @@ class PersianGrammarChecker:
                 cleaned_words.append(words[i])
         
         return ' '.join(cleaned_words)
-            
+
+    def extract_components(self, text: str) -> SentenceComponents:
+        """Extract sentence components from text"""
+        normalized_text = p.normalizer(text)
+        tokens = p.getwordtokens(normalized_text)
+        tags = p.tagger(tokens)
+
+        components, flags = self._parse_sentence_components(tags)
+        return components
     def _build_corrected_sentence(self, components: SentenceComponents,
                                     flags: SentenceFlags, corrected_verb: str) -> str:
-        """Build the corrected sentence based on components and structure"""
         parts = []
         
         if flags.noun_clause_found:
             parts.append(f"{components.noun_clause}!")
-        
         if flags.starting_adverb_found:
             parts.append(components.starting_adverb)
-        
         if flags.subject_found:
             parts.append(components.subject)
             if components.untagged_words and not flags.verb_part_found:
                 parts.append(' '.join(components.untagged_words).strip('.'))
-        
         if flags.complement_found:
             parts.append(f"{components.adposition} {components.complement}")
-        
         if flags.object_found:
             parts.append(f"{components.object} را")
-        
         if flags.verb_adverb_found:
             parts.append(components.verb_adverb)
-        
         if flags.noun_complement_found:
             parts.append(components.noun_complement)
-        
         if flags.verb_found:
             parts.append(corrected_verb)
         
-        sentence = ' '.join(parts) + '.'
+        sentence = ' '.join(parts)
+        
+        # Append the detected punctuation, otherwise default to fullstop
+        if components.final_punctuation:
+             sentence += components.final_punctuation
+        else:
+             sentence += '.'
+        
         return self._remove_duplicates(sentence)
-
+   
     def correct(self, text: str) -> str:
         """Main method to correct Persian grammar in text"""
+        # Normalize the text (which includes separating compound words)
         normalized_text = p.normalizer(text)
         tokens = p.getwordtokens(normalized_text)
         tags = p.tagger(tokens)
@@ -526,7 +568,10 @@ class PersianGrammarChecker:
         
         corrected_sentence = self._build_corrected_sentence(components, flags, corrected_verb)
         
-        return corrected_sentence.replace("  ", " ")
+        # Normalize the final result using regular normalizer before returning
+        normalized_result = p.normalizer(corrected_sentence)
+        
+        return normalized_result.replace("  ", " ")
 
 
 # Singleton instance of PersianGrammarChecker

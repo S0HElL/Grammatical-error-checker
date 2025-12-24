@@ -1,0 +1,8 @@
+Input Sentence:من به‌همراه حسین، رضا را ملاقات‌کردیم
+Subject: من
+Verb: ملاقات‌کردیم
+Object: رضا
+Complement: حسین
+Adposition: به‌همراه
+Adverbs: []
+Untagged words: []

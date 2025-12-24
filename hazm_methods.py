@@ -1,6 +1,10 @@
 from __future__ import unicode_literals
 from hazm import *
 import difflib
+import re
+from typing import Dict, List, Tuple, Optional, Any
+
+
 
 class SentenceTokenizer:
     """Sentence tokenizer for Persian text"""
@@ -169,3 +173,6 @@ class parser:
                 return conj.perfective_future(verb)
             case "negative_perfective_future":
                 return conj.negative_perfective_future
+
+
+    
