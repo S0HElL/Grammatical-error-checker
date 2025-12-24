@@ -3,6 +3,7 @@ from grammarchecker import PersianGrammarChecker
 from hazm_methods import SentenceTokenizer
 from hazm import Normalizer
 import json
+import concurrent.futures
 
 app = Flask(__name__)
 
@@ -12,18 +13,27 @@ grammar_checker = PersianGrammarChecker()
 sentence_tokenizer = SentenceTokenizer()
 
 
+def process_sentence(sentence: str) -> dict:
+    """
+    Process a single sentence through grammar checker.
+    Returns: dict with original and corrected sentence
+    """
+    corrected = grammar_checker.correct(sentence.strip())
+    return {
+        "original": sentence.strip(),
+        "corrected": corrected
+    }
+
 def process_text(text: str) -> tuple[str, list[dict]]:
     """
-    Process text through grammar checker.
+    Process text through grammar checker using multithreading.
     Returns: (corrected_text, log_entries)
     """
     if not text or not text.strip():
         return '', []
     
-    corrected_sentences = []
-    log_entries = []
-    
-    # Split into lines first, then tokenize each line into sentences
+    # Collect all sentences into a list
+    all_sentences = []
     for line in text.splitlines():
         if not line.strip():
             continue
@@ -34,20 +44,20 @@ def process_text(text: str) -> tuple[str, list[dict]]:
         # Tokenize into sentences
         sentences = sentence_tokenizer.tokenize(normalized_line)
         
-        # Process each sentence
+        # Add non-empty sentences to the list
         for sentence in sentences:
             if sentence.strip():
-                corrected = grammar_checker.correct(sentence.strip())
-                corrected_sentences.append(corrected)
-                
-                # Create log entry
-                log_entries.append({
-                    "original": sentence.strip(),
-                    "corrected": corrected
-                })
+                all_sentences.append(sentence.strip())
+    
+    # Process sentences in parallel using ThreadPoolExecutor
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        log_entries = list(executor.map(process_sentence, all_sentences))
+    
+    # Extract corrected sentences from log entries
+    corrected_sentences = [entry["corrected"] for entry in log_entries]
     
     # Join corrected sentences with space
-    result = ' '.join(corrected_sentences)
+    result = '\n'.join(corrected_sentences)
     
     return result, log_entries
 

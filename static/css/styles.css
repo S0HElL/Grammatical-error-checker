@@ -76,6 +76,7 @@ textarea {
     border-radius: 8px;
     resize: vertical;
     transition: border-color 0.3s ease;
+    white-space: pre-wrap;
 }
 
 textarea:focus {
